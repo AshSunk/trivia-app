@@ -37,7 +37,6 @@ function App() {
     };
 
     const handleAnswerSelect = (questionId, answer) => {
-        // Prevent changing the answer after the initial selection
         if (selectedAnswers[questionId]) return;
 
         setSelectedAnswers(prev => ({
@@ -66,16 +65,33 @@ function App() {
                             <Grid container spacing={2} sx={{ mt: 1 }}>
                                 {q.answers.map((answer, i) => {
                                     const isSelected = selectedAnswers[q.id] === answer;
+                                    const isCorrect = answer === q.correctAnswer;
                                     const isAnswered = !!selectedAnswers[q.id];
+
+                                    // Color logic
+                                    let buttonColor = "primary";
+                                    let variant = "outlined";
+
+                                    if (isAnswered) {
+                                        if (isSelected) {
+                                            buttonColor = isCorrect ? "success" : "error";
+                                            variant = "contained";
+                                        } else if (isCorrect) {
+                                            buttonColor = "success";
+                                            variant = "contained";
+                                        } else {
+                                            buttonColor = "inherit";
+                                        }
+                                    }
 
                                     return (
                                         <Grid item xs={12} sm={6} key={i}>
                                             <Button
                                                 fullWidth
-                                                variant="outlined"
-                                                color="primary"
+                                                variant={variant}
+                                                color={buttonColor !== "inherit" ? buttonColor : "inherit"}
                                                 onClick={() => handleAnswerSelect(q.id, answer)}
-                                                disabled={isAnswered && !isSelected}
+                                                disabled={isAnswered && !isSelected && !isCorrect}
                                                 sx={{
                                                     textTransform: 'none',
                                                     justifyContent: 'flex-start',
