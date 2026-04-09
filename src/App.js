@@ -3,6 +3,7 @@ import { Container, Card, CardContent, Typography, Button, Grid, Box, CircularPr
 
 function App() {
     const [questions, setQuestions] = useState([]);
+    const [selectedAnswers, setSelectedAnswers] = useState({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -17,7 +18,6 @@ function App() {
 
             const formattedQuestions = data.map((q) => {
                 const answers = [...q.incorrectAnswers, q.correctAnswer];
-                //Standard array shuffle
                 answers.sort(() => Math.random() - 0.5);
 
                 return {
@@ -34,6 +34,16 @@ function App() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleAnswerSelect = (questionId, answer) => {
+        // Prevent changing the answer after the initial selection
+        if (selectedAnswers[questionId]) return;
+
+        setSelectedAnswers(prev => ({
+            ...prev,
+            [questionId]: answer
+        }));
     };
 
     return (
@@ -54,24 +64,31 @@ function App() {
                                 {index + 1}. {q.questionText}
                             </Typography>
                             <Grid container spacing={2} sx={{ mt: 1 }}>
-                                {q.answers.map((answer, i) => (
-                                    <Grid item xs={12} sm={6} key={i}>
-                                        <Button
-                                            fullWidth
-                                            variant="outlined"
-                                            color="primary"
-                                            sx={{
-                                                textTransform: 'none',
-                                                justifyContent: 'flex-start',
-                                                textAlign: 'left',
-                                                py: 1.5,
-                                                fontSize: '1rem'
-                                            }}
-                                        >
-                                            {answer}
-                                        </Button>
-                                    </Grid>
-                                ))}
+                                {q.answers.map((answer, i) => {
+                                    const isSelected = selectedAnswers[q.id] === answer;
+                                    const isAnswered = !!selectedAnswers[q.id];
+
+                                    return (
+                                        <Grid item xs={12} sm={6} key={i}>
+                                            <Button
+                                                fullWidth
+                                                variant="outlined"
+                                                color="primary"
+                                                onClick={() => handleAnswerSelect(q.id, answer)}
+                                                disabled={isAnswered && !isSelected}
+                                                sx={{
+                                                    textTransform: 'none',
+                                                    justifyContent: 'flex-start',
+                                                    textAlign: 'left',
+                                                    py: 1.5,
+                                                    fontSize: '1rem'
+                                                }}
+                                            >
+                                                {answer}
+                                            </Button>
+                                        </Grid>
+                                    );
+                                })}
                             </Grid>
                         </CardContent>
                     </Card>
