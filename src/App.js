@@ -4,6 +4,8 @@ import { Container, Card, CardContent, Typography, Button, Grid, Box, CircularPr
 function App() {
     const [questions, setQuestions] = useState([]);
     const [selectedAnswers, setSelectedAnswers] = useState({});
+    //Stretch Goal: Tracking the user's running score
+    const [score, setScore] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -14,9 +16,11 @@ function App() {
     const fetchQuestions = async () => {
         setLoading(true);
         setError(null);
+
         try {
             const response = await fetch('https://the-trivia-api.com/v2/questions?limit=5');
 
+            //Catching 500 errors early so the app doesn't hang on a bad JSON parse
             if (!response.ok) {
                 throw new Error(`API Server Error: ${response.status}`);
             }
@@ -25,6 +29,7 @@ function App() {
 
             const formattedQuestions = data.map((q) => {
                 const answers = [...q.incorrectAnswers, q.correctAnswer];
+                //Standard sort trick to shuffle the correct answer so it isn't predictably last
                 answers.sort(() => Math.random() - 0.5);
 
                 return {
@@ -44,13 +49,18 @@ function App() {
         }
     };
 
-    const handleAnswerSelect = (questionId, answer) => {
+    const handleAnswerSelect = (questionId, answer, correctAnswer) => {
+        //Bail out early if they already answered this specific question
         if (selectedAnswers[questionId]) return;
 
         setSelectedAnswers(prev => ({
             ...prev,
             [questionId]: answer
         }));
+
+        if (answer === correctAnswer) {
+            setScore(prevScore => prevScore + 1);
+        }
     };
 
     return (
@@ -58,6 +68,12 @@ function App() {
             <Typography variant="h3" align="center" gutterBottom fontWeight="bold">
                 Trivia Game
             </Typography>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                <Typography variant="h5" color="primary" sx={{ fontWeight: 'medium' }}>
+                    Current Score: {score}
+                </Typography>
+            </Box>
 
             {loading && !error ? (
                 <Box display="flex" justifyContent="center" mt={4}>
@@ -74,6 +90,7 @@ function App() {
                             <Typography variant="h6" gutterBottom>
                                 {index + 1}. {q.questionText}
                             </Typography>
+
                             <Grid container spacing={2} sx={{ mt: 1 }}>
                                 {q.answers.map((answer, i) => {
                                     const isSelected = selectedAnswers[q.id] === answer;
@@ -83,6 +100,7 @@ function App() {
                                     let buttonColor = "primary";
                                     let variant = "outlined";
 
+                                    //Figuring out which buttons to highlight green/red and which to gray out
                                     if (isAnswered) {
                                         if (isSelected) {
                                             buttonColor = isCorrect ? "success" : "error";
@@ -101,7 +119,7 @@ function App() {
                                                 fullWidth
                                                 variant={variant}
                                                 color={buttonColor !== "inherit" ? buttonColor : "inherit"}
-                                                onClick={() => handleAnswerSelect(q.id, answer)}
+                                                onClick={() => handleAnswerSelect(q.id, answer, q.correctAnswer)}
                                                 disabled={isAnswered && !isSelected && !isCorrect}
                                                 sx={{
                                                     textTransform: 'none',
