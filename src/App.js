@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography } from '@mui/material';
+import { Container, Card, CardContent, Typography, Button, Grid, Box, CircularProgress } from '@mui/material';
 
 function App() {
     const [questions, setQuestions] = useState([]);
@@ -41,7 +41,42 @@ function App() {
             <Typography variant="h3" align="center" gutterBottom fontWeight="bold">
                 Trivia Game
             </Typography>
-            {/* State is working in the background, UI will render it in the next commit */}
+
+            {loading ? (
+                <Box display="flex" justifyContent="center" mt={4}>
+                    <CircularProgress />
+                </Box>
+            ) : (
+                questions.map((q, index) => (
+                    <Card key={q.id} sx={{ mb: 3, boxShadow: 3 }}>
+                        <CardContent>
+                            <Typography variant="h6" gutterBottom>
+                                {index + 1}. {q.questionText}
+                            </Typography>
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
+                                {q.answers.map((answer, i) => (
+                                    <Grid item xs={12} sm={6} key={i}>
+                                        <Button
+                                            fullWidth
+                                            variant="outlined"
+                                            color="primary"
+                                            sx={{
+                                                textTransform: 'none',
+                                                justifyContent: 'flex-start',
+                                                textAlign: 'left',
+                                                py: 1.5,
+                                                fontSize: '1rem'
+                                            }}
+                                        >
+                                            {answer}
+                                        </Button>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </CardContent>
+                    </Card>
+                ))
+            )}
         </Container>
     );
 }
