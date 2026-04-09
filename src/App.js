@@ -5,6 +5,7 @@ function App() {
     const [questions, setQuestions] = useState([]);
     const [selectedAnswers, setSelectedAnswers] = useState({});
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchQuestions();
@@ -12,8 +13,14 @@ function App() {
 
     const fetchQuestions = async () => {
         setLoading(true);
+        setError(null);
         try {
             const response = await fetch('https://the-trivia-api.com/v2/questions?limit=5');
+
+            if (!response.ok) {
+                throw new Error(`API Server Error: ${response.status}`);
+            }
+
             const data = await response.json();
 
             const formattedQuestions = data.map((q) => {
@@ -31,6 +38,7 @@ function App() {
             setQuestions(formattedQuestions);
         } catch (err) {
             console.error("API failed:", err);
+            setError(`Failed to load questions. ${err.message}. Please try refreshing.`);
         } finally {
             setLoading(false);
         }
@@ -51,10 +59,14 @@ function App() {
                 Trivia Game
             </Typography>
 
-            {loading ? (
+            {loading && !error ? (
                 <Box display="flex" justifyContent="center" mt={4}>
                     <CircularProgress />
                 </Box>
+            ) : error ? (
+                <Typography color="error" align="center" variant="h6" sx={{ mt: 4 }}>
+                    {error}
+                </Typography>
             ) : (
                 questions.map((q, index) => (
                     <Card key={q.id} sx={{ mb: 3, boxShadow: 3 }}>
@@ -68,7 +80,6 @@ function App() {
                                     const isCorrect = answer === q.correctAnswer;
                                     const isAnswered = !!selectedAnswers[q.id];
 
-                                    // Color logic
                                     let buttonColor = "primary";
                                     let variant = "outlined";
 
